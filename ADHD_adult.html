@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>成人 ADHD 自填量表｜ASRS 6 題與 18 題整合自動計分</title>
+<style>
+  :root {
+    --bg: #f4f7fb; --surface: #fff; --ink: #1d2c43; --muted: #5c6f85;
+    --blue: #2258a6; --blue-dark: #16427f; --blue-soft: #eef4fd;
+    --border: #dce4ee; --ok: #17765e; --ok-soft: #eaf6f1;
+    --amber: #9b6210; --amber-soft: #fff6e7;
+    --shadow: 0 10px 34px rgba(22,55,99,.07);
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; color: var(--ink); background: var(--bg); line-height: 1.65; }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #6aa6f8; outline-offset: 3px; }
+  .wrap { width: min(100% - 32px, 1050px); margin: 0 auto; }
+  header { background: linear-gradient(115deg, #173e79, #2763b1); color: #fff; padding: 44px 0 39px; }
+  .eyebrow { font-size: 13px; letter-spacing: .12em; font-weight: 700; color: #cadffb; }
+  h1 { font-size: clamp(25px, 4.3vw, 37px); letter-spacing: .01em; line-height: 1.3; margin: 12px 0; }
+  header p { color: #e1edff; max-width: 790px; margin: 0; }
+  main { padding: 26px 0 45px; }
+  .info, .panel, .result-panel { border: 1px solid var(--border); background: var(--surface); border-radius: 17px; box-shadow: var(--shadow); }
+  .info { padding: 22px 25px; margin-bottom: 22px; }
+  .info p { margin: 7px 0; }
+  .info strong { color: var(--blue-dark); }
+  .tiny-note { color: var(--muted); font-size: 13px; }
+  .notice { border-left: 4px solid #e5b25b; padding: 7px 13px; background: #fff9ed; border-radius: 0 7px 7px 0; margin-top: 13px !important; }
+  .panel { overflow: hidden; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 15px; background: #f9fbff; border-bottom: 1px solid var(--border); }
+  .tab { border: 1px solid transparent; border-radius: 11px; padding: 14px 10px; background: transparent; color: var(--muted); font-size: 16px; font-weight: 700; }
+  .tab[aria-selected="true"] { background: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(34,88,166,.2); }
+  .panel-inner { padding: 24px 27px 27px; }
+  .row-between { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+  h2 { font-size: 21px; line-height: 1.45; margin: 0 0 6px; }
+  .sub { font-size: 14px; color: var(--muted); margin: 0; }
+  .progress-count { color: var(--blue-dark); font-size: 17px; font-weight: 800; white-space: nowrap; }
+  .progress { height: 8px; background: #e5ecf5; border-radius: 100px; overflow: hidden; margin: 20px 0 5px; }
+  .progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, #4681d2, #2156a3); transition: width .2s; }
+  .section-bar { display:flex; gap:10px; align-items:center; margin: 26px 0 13px; padding: 12px 14px; border-radius: 9px; background: var(--blue-soft); color: var(--blue-dark); font-weight: 800; }
+  .section-bar span { color: var(--muted); font-size: 13px; font-weight: 500; }
+  .q-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(345px, .85fr); gap: 15px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .q-card:last-child { border-bottom: none; }
+  .question-main { display: flex; align-items: flex-start; gap: 12px; }
+  .q-num { border-radius: 8px; background: #e8eef8; color: var(--blue-dark); font-weight: 800; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; width: 37px; height: 34px; flex: 0 0 37px; }
+  .question-text { padding-top: 2px; font-size: 15px; font-weight: 550; }
+  .crossref { display: inline-block; margin-top: 5px; font-size: 11px; padding: 1px 7px; border: 1px solid #c6d9ef; border-radius: 99px; color: #36689d; background: #f0f6ff; font-weight: 650; }
+  .q-answer { display: grid; grid-template-columns: minmax(0, 1fr) 69px; gap: 9px; align-items: center; }
+  .choices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .choice { min-width: 0; min-height: 52px; padding: 6px 2px; background: #fff; border: 1px solid #cfd9e6; border-radius: 8px; color: #4b5b6d; display: flex; flex-direction: column; align-items: center; justify-content:center; gap: 0; transition: background .1s, border-color .1s; }
+  .choice b { font-size: 16px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .choice small { font-size: 11px; white-space: nowrap; letter-spacing: -.035em; }
+  .choice:hover { border-color: var(--blue); background: var(--blue-soft); }
+  .choice[aria-pressed="true"] { border-color: var(--blue); color: #fff; background: var(--blue); }
+  .entry { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .entry label { font-size: 11px; color: var(--muted); }
+  .entry input { width: 62px; height: 36px; text-align: center; border: 1px solid #b9cadf; color: var(--ink); border-radius: 8px; background: #fff; font-size: 16px; font-weight: 800; }
+  .entry input[aria-invalid="true"] { border-color: #c35151; background: #fff0f0; }
+  .entry-hint { min-height: 14px; font-size: 10px; color: #b84242; white-space: nowrap; }
+  .toolbar { display: flex; flex-wrap:wrap; gap: 10px; align-items: center; padding-top: 27px; }
+  .secondary { border-radius: 10px; padding: 12px 19px; font-weight: 800; min-height: 45px; }
+  .secondary { color: var(--blue); background: #fff; border: 1px solid #b6c7df; }
+  .secondary:hover { background: var(--blue-soft); }
+  .toolbar .spacer { flex: 1; }
+  #form-message { margin-top: 11px; font-size: 14px; color: #9b3d2e; min-height: 22px; }
+  .result-panel { margin-top: 22px; padding: 25px; }
+  .result-panel[hidden] { display: none; }
+  .result-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 19px; padding-bottom: 10px; }
+  .result-heading h2 { margin: 0; }
+  .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+  .metric { padding: 18px; border-radius: 12px; background: #f7f9fd; border: 1px solid var(--border); }
+  .metric .label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .metric .number { display: block; font-size: clamp(24px,3.3vw,34px); font-weight: 850; line-height: 1.3; margin: 7px 0; color: var(--blue-dark); font-variant-numeric: tabular-nums; }
+  .metric .number span { font-size: 15px; font-weight: 600; color: var(--muted); }
+  .metric .assessment { color: var(--ink); font-size: 13px; font-weight: 800; }
+  .metric.focal { background: var(--blue-soft); border-color: #b5cef1; }
+  .readout { padding: 14px 16px; border-radius: 10px; margin-top: 17px; background: var(--ok-soft); border-left: 4px solid var(--ok); }
+  .readout.review { background: var(--amber-soft); border-left-color: #d09b35; }
+  .readout p { margin: 4px 0; }
+  .detail { margin-top: 20px; }
+  .detail h3 { font-size: 16px; margin: 0 0 8px; }
+  .detail ol { margin: 6px 0 8px 24px; padding: 0; font-size: 14px; }
+  .detail li { margin: 4px 0; }
+  .tag { border-radius: 5px; padding: 2px 7px; background: #e6edf6; color: #42607c; font-size: 12px; font-weight: 700; }
+  .tag.mark { background: #f6dfac; color: #774c04; }
+  .footnote { margin-top: 17px; padding-top: 13px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  footer { color: var(--muted); font-size: 12px; padding: 2px 0 40px; }
+  footer p { margin: 5px 0; }
+  .print-only { display:none; }
+  @media (max-width: 850px) { .q-card { grid-template-columns: 1fr; gap: 10px; } .q-answer { padding-left: 49px; } }
+  @media (max-width: 540px) {
+    .wrap { width: min(100% - 22px, 1050px); }
+    header { padding: 31px 0 30px; }
+    .info { padding: 16px; }
+    .panel-inner { padding: 19px 14px; }
+    .tabs { padding: 9px; gap: 6px; }
+    .tab { font-size: 13px; padding: 12px 4px; }
+    .row-between { gap: 7px; }
+    .progress-count { font-size: 14px; }
+    .question-main { gap: 8px; }
+    .q-num { width: 30px; flex-basis:30px; height:30px; }
+    .q-answer { padding-left: 0; gap: 6px; grid-template-columns: minmax(0,1fr) 58px; }
+    .choice { min-height: 51px; border-radius: 6px; }
+    .choice small { font-size: 10px; letter-spacing: -.05em; }
+    .entry input { width: 53px; }
+    .metric-grid { grid-template-columns: 1fr; }
+    .metric { padding: 13px 15px; }
+    .result-panel { padding: 19px 15px; }
+    .toolbar .spacer { display: none; }
+  }
+  @media print {
+    * { box-shadow: none !important; }
+    body { background: #fff; font-size: 11pt; }
+    header { background: #fff !important; color: #111; padding: 7px 0 15px; border-bottom: 2px solid #333; }
+    header p, header .eyebrow { color: #333; }
+    h1 { font-size: 20pt; }
+    .wrap { width: 100%; }
+    main { padding: 14px 0; }
+    .info, .panel, .result-panel { border: none; border-radius: 0; }
+    .info { padding: 5px 0; }
+    .tabs, .toolbar, .progress, #form-message, .tiny-note.print-hide, .entry, .crossref { display: none !important; }
+    .panel-inner { padding: 0; }
+    .q-card { grid-template-columns: 1fr 250px; break-inside: avoid; padding: 7px 0; }
+    .choice { padding: 3px 0; min-height: 30px; border-radius: 0; }
+    .choice small { display: none; }
+    .choice[aria-pressed="true"] { color: #000; background: #dde8f5; border: 2px solid #000; }
+    .section-bar { margin: 10px 0 4px; padding: 5px; }
+    .result-panel { break-before: page; padding: 0; }
+    .metric-grid { grid-template-columns: repeat(3,1fr); }
+    .metric { padding: 12px; }
+    .print-only { display: block; }
+    footer { padding-bottom: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">WHO 成人 ADHD 自填量表｜ASRS V1.1</div>
+    <h1>成人 ADHD 自填量表<br>6 題與 18 題整合自動計分</h1>
+    <p>依照原始繁體中文文件製作。可直接點選頻率，或在「鍵入」欄輸入 0～4；填完所選量表全部題目後，自動顯示並即時更新計分結果。</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="info" aria-label="使用說明">
+    <strong>填答說明</strong>
+    <p>請選擇最符合您<strong>過去六個月</strong>感受與行為的頻率：<b>0 從不、1 很少、2 有時、3 常常、4 非常頻繁</b>。本問卷供 <strong>18 歲以上</strong>成人使用。</p>
+    <p class="tiny-note">「6 題快速篩檢」與「18 題症狀檢核」可以自由切換，已填答案會保留在本頁面。<strong>無須按計算鍵</strong>，只要填完目前選擇的全部題目，結果就會自動出現；修改答案時也會同步更新。兩份原始文件問句有少數用字差異，切換時顯示各版本原文。</p>
+    <p class="notice"><strong>注意：</strong>篩檢結果不是 ADHD 的診斷，也無法排除 ADHD。若有持續困擾，請由專業醫療人員綜合症狀、功能影響及病史評估。</p>
+  </section>
+  <section class="panel" aria-label="量表填寫">
+    <div class="tabs" role="tablist" aria-label="選擇量表">
+      <button type="button" id="tab-short" class="tab" role="tab" aria-selected="true" aria-controls="question-panel" data-mode="short">6 題快速篩檢</button>
+      <button type="button" id="tab-full" class="tab" role="tab" aria-selected="false" aria-controls="question-panel" data-mode="full">18 題完整檢核</button>
+    </div>
+    <div class="panel-inner" id="question-panel" role="tabpanel" aria-labelledby="tab-short">
+      <div class="row-between">
+        <div><h2 id="form-title">6 題快速篩檢</h2><p class="sub" id="form-description">依 ASRS-V1.1 篩檢表的深色格計數規則。</p></div>
+        <div class="progress-count" id="progress-count" aria-live="polite">0 / 6 已填</div>
+      </div>
+      <div class="progress" role="progressbar" aria-label="填答進度" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="progress-track"><div id="progress-fill"></div></div>
+      <div id="questions"></div>
+      <div class="toolbar">
+        <button type="button" class="secondary" id="clear-btn">清除全部答案</button>
+        <span class="spacer"></span>
+        <span class="tiny-note print-hide">資料不會上傳；重新整理頁面會清除。</span>
+      </div>
+      <div id="form-message" role="alert" aria-live="polite"></div>
+    </div>
+  </section>
+  <section class="result-panel" id="results" aria-live="polite" aria-label="計分結果" hidden></section>
+</main>
+<footer class="wrap">
+  <p>資料來源：成人 ADHD 自填量表 V1.1（ASRS-V1.1）6 題篩檢表，以及成人 ADHD 自填量表（ASRS）18 題症狀檢核表之繁體中文版本。</p>
+  <p>© World Health Organization 2005。繁體中文翻譯：Susan Shur-Fen Gau, MD, PhD（高淑芬醫師），原文件刊有授權與使用條款。</p>
+  <p>此工具為原量表之離線互動整合，不提供醫療診斷或個別治療建議。</p>
+</footer>
+<script>
+(() => {
+  'use strict';
+  // Full 18-item checklist (9 inattention items; 9 hyperactivity/impulsivity items).
+  // Wording transcribed from the user-provided Traditional Chinese ASRS checklist.
+  const fullQuestions = [
+    '當必須進行一件枯燥或困難的計劃時，你會多常粗心犯錯？',
+    '當正在做枯燥或重複性的工作時，你多常有持續專注的困難？',
+    '即使有人直接對你說話，你會多常有困難專注於別人跟你講話的內容？',
+    '一旦完成任何計劃中最具挑戰的部份之後，你多常有完成計劃最後細節的困難？',
+    '當必須從事需要有組織規劃性的任務時，你會多常有困難井然有序地去做？',
+    '當有一件需要多費心思考的工作時，你會多常逃避或是延後開始去做？',
+    '在家裡或是在工作時，你會多常沒有把東西放對地方或是找不到東西？',
+    '你會多常因身旁的活動或聲音而分心？',
+    '你會多常有問題去記得約會或是必須要做的事？',
+    '當你必須長時間坐著時，你會多常坐不安穩或扭動手腳？',
+    '你會多常在開會時或在其他被期待坐好的場合中離開座位？',
+    '你會多常覺得靜不下來或煩躁不安？',
+    '當有自己獨處的時間時，你會多常覺得有困難使自己平靜和放鬆？',
+    '你會多常像被馬達所驅動一樣，覺得自己過度地活躍，不得不做事情？',
+    '在社交場合中，你會多常發現自己話講得太多？',
+    '當與他人交談時，你會多常在別人還沒把話講完前就插嘴或接話替對方把話講完？',
+    '在需要輪流排隊的場合時，你會多常有困難輪流等待？',
+    '你會多常在別人忙碌時打斷別人？'
+  ];
+  // The six-item screener is a subset of the 18-item checklist, with its own PDF wording.
+  const shortOrder = [3, 4, 8, 5, 9, 13];
+  const shortQuestions = [
+    '一旦完成任何計劃中最具挑戰的部分之後，你多常有完成計劃最後細節的困難？',
+    '當必須從事需要有組織規劃性的任務時，你會多常有困難井然有序地去做？',
+    '你會多常有問題去記得約會或是應該做的事？',
+    '當有一件需要多費心思考的工作時，你會多常逃避或是延後開始去做？',
+    '當你必須長時間坐著時，你會多常坐不安穩或扭動手腳？',
+    '你會多常像被馬達所驅動一樣，覺得自己過度地活躍，不得不做事情？'
+  ];
+  const frequencies = ['從不', '很少', '有時', '常常', '非常頻繁'];
+  const answers = Array(18).fill(null);
+  let mode = 'short';
+  const el = id => document.getElementById(id);
+
+  function requiredIndices() {
+    return mode === 'short' ? shortOrder : fullQuestions.map((_, i) => i);
+  }
+  function renderQuestion(index, displayNo, text, isOverlap) {
+    const selected = answers[index];
+    return `<div class="q-card" data-index="${index}">
+      <div class="question-main">
+        <span class="q-num" aria-hidden="true">${displayNo}</span>
+        <div><div class="question-text" id="q-label-${index}">${text}</div>
+          ${isOverlap ? '<span class="crossref">同時納入 6 題篩檢</span>' : ''}</div>
+      </div>
+      <div class="q-answer">
+        <div class="choices" role="group" aria-label="第 ${displayNo} 題：選擇頻率">
+          ${frequencies.map((label, value) => `<button type="button" class="choice" data-choice="${value}" data-question="${index}" aria-pressed="${selected === value}"><b>${value}</b><small>${label}</small></button>`).join('')}
+        </div>
+        <div class="entry">
+          <label for="entry-${index}">鍵入 0–4</label>
+          <input type="text" inputmode="numeric" pattern="[0-4]" maxlength="1" autocomplete="off" spellcheck="false" data-input="${index}" id="entry-${index}" aria-label="第 ${displayNo} 題，輸入 0 到 4" value="${selected === null ? '' : selected}">
+          <span class="entry-hint" aria-hidden="true"></span>
+        </div>
+      </div>
+    </div>`;
+  }
+  function renderQuestions() {
+    let content = '';
+    if (mode === 'short') {
+      content = '<div class="section-bar">6 題篩檢 <span>按原文件題序，直接計算深色格數量</span></div>'
+        + shortOrder.map((idx, p) => renderQuestion(idx, p + 1, shortQuestions[p], false)).join('');
+    } else {
+      content = '<div class="section-bar">A 部分：不專心 <span>第 1–9 題，每題 0–4 分</span></div>'
+        + fullQuestions.slice(0, 9).map((text, i) => renderQuestion(i, i + 1, text, shortOrder.includes(i))).join('')
+        + '<div class="section-bar">B 部分：過動／衝動 <span>第 10–18 題，每題 0–4 分</span></div>'
+        + fullQuestions.slice(9).map((text, i) => renderQuestion(i + 9, i + 10, text, shortOrder.includes(i + 9))).join('');
+    }
+    el('questions').innerHTML = content;
+    el('form-title').textContent = mode === 'short' ? '6 題快速篩檢' : '18 題完整症狀檢核';
+    el('form-description').textContent = mode === 'short'
+      ? '6 題深色格計數：前 3 題達「有時」，後 3 題達「常常」各算 1 格；滿 4 格為篩檢提示。'
+      : 'A 部分（1–9 題）及 B 部分（10–18 題）分開加總；填滿後同時計算對應的 6 題篩檢。';
+    updateProgress();
+  }
+  function updateQuestionDisplay(index) {
+    const card = el('questions').querySelector(`.q-card[data-index="${index}"]`);
+    if (!card) return;
+    card.querySelectorAll('[data-choice]').forEach(b => {
+      b.setAttribute('aria-pressed', String(Number(b.dataset.choice) === answers[index]));
+    });
+    const input = card.querySelector('[data-input]');
+    const current = answers[index] === null ? '' : String(answers[index]);
+    if (input.value !== current) input.value = current;
+    input.removeAttribute('aria-invalid');
+    card.querySelector('.entry-hint').textContent = '';
+  }
+  function isCurrentFormComplete() {
+    return requiredIndices().every(i => answers[i] !== null);
+  }
+  function syncResults({ scrollOnCompletion = false } = {}) {
+    if (!isCurrentFormComplete()) {
+      el('results').hidden = true;
+      return;
+    }
+    renderResults();
+    if (scrollOnCompletion) {
+      el('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  function setAnswer(index, value) {
+    if (!Number.isInteger(index) || index < 0 || index >= 18) return;
+    const wasComplete = isCurrentFormComplete();
+    answers[index] = value;
+    updateQuestionDisplay(index);
+    updateProgress();
+    el('form-message').textContent = '';
+    // When the last required answer is entered, show the result without a submit button.
+    // Subsequent edits to any answer update the scores immediately.
+    syncResults({ scrollOnCompletion: !wasComplete && isCurrentFormComplete() });
+  }
+  function updateProgress() {
+    const ids = requiredIndices();
+    const count = ids.filter(i => answers[i] !== null).length;
+    el('progress-count').textContent = count === ids.length
+      ? `${count} / ${ids.length} 已填 · 已自動計分`
+      : `${count} / ${ids.length} 已填`;
+    el('progress-fill').style.width = `${100 * count / ids.length}%`;
+    el('progress-track').setAttribute('aria-valuenow', String(count));
+    el('progress-track').setAttribute('aria-valuemax', String(ids.length));
+  }
+  function getShortScore() {
+    // Dark/shaded checkboxes in the 6-item PDF: items 1–3: 2/3/4; items 4–6: 3/4.
+    const hits = shortOrder.map((index, p) => answers[index] >= (p < 3 ? 2 : 3));
+    return { hits, count: hits.filter(Boolean).length, positive: hits.filter(Boolean).length >= 4 };
+  }
+  function getFullScores() {
+    const a = answers.slice(0, 9).reduce((s, n) => s + n, 0);
+    const b = answers.slice(9, 18).reduce((s, n) => s + n, 0);
+    const level = n => n >= 24 ? '非常可能有 ADHD' : n >= 17 ? '很可能有 ADHD' : '不太可能有 ADHD';
+    return { a, b, aLevel: level(a), bLevel: level(b) };
+  }
+  function shortDetails(score) {
+    return `<div class="detail"><h3>6 題逐題判讀</h3><ol>${shortOrder.map((index,p) => {
+      const minimum = p < 3 ? 2 : 3;
+      const hit = score.hits[p];
+      return `<li>第 ${p+1} 題：${frequencies[answers[index]]}（${answers[index]}）｜計入門檻：${frequencies[minimum]}或以上 <span class="tag ${hit ? 'mark' : ''}">${hit ? '符合深色格' : '未符合深色格'}</span></li>`;
+    }).join('')}</ol></div>`;
+  }
+  function renderResults() {
+    const s = getShortScore();
+    const completeFull = answers.every(n => n !== null);
+    const f = completeFull ? getFullScores() : null;
+    const today = new Intl.DateTimeFormat('zh-TW', { year:'numeric', month:'long', day:'numeric' }).format(new Date());
+    const shortSummary = s.positive
+      ? '6 題中有 4 題或以上落在深色格區域；依原始篩檢表，症狀可能符合成人 ADHD，建議與健康照護專業人員討論進一步評估。'
+      : '6 題中少於 4 題落在深色格區域，未達這份 6 題篩檢表的提示門檻；這不代表排除 ADHD。';
+    let metrics = '';
+    let interpretation = '';
+    if (mode === 'short') {
+      metrics = `<div class="metric-grid"><div class="metric focal"><div class="label">6 題篩檢｜深色格數</div>
+        <span class="number">${s.count}<span> / 6 題</span></span><div class="assessment">${s.positive ? '達篩檢提示門檻（≥ 4）' : '未達提示門檻（< 4）'}</div></div></div>`;
+      interpretation = `<div class="readout ${s.positive ? 'review' : ''}"><strong>篩檢結果</strong><p>${shortSummary}</p></div>`;
+    } else {
+      const notable = f.a >= 17 || f.b >= 17;
+      metrics = `<div class="metric-grid">
+        <div class="metric focal"><div class="label">6 題篩檢｜深色格數</div><span class="number">${s.count}<span> / 6 題</span></span><div class="assessment">${s.positive ? '達提示門檻' : '未達提示門檻'}</div></div>
+        <div class="metric"><div class="label">A 部分｜不專心</div><span class="number">${f.a}<span> / 36 分</span></span><div class="assessment">${f.aLevel}</div></div>
+        <div class="metric"><div class="label">B 部分｜過動／衝動</div><span class="number">${f.b}<span> / 36 分</span></span><div class="assessment">${f.bLevel}</div></div>
+      </div>`;
+      interpretation = `<div class="readout ${notable || s.positive ? 'review' : ''}"><strong>整合判讀</strong>
+        <p>${shortSummary}</p>
+        <p>18 題原文件的 A、B 部分各自判讀：每部分 0–16 分為「不太可能有 ADHD」，17–23 分為「很可能有 ADHD」，24–36 分為「非常可能有 ADHD」。${notable ? '您的至少一個部分達「很可能」或以上的分數區間，依原文件建議進一步了解症狀造成的損害與病史。' : '即使兩部分均在較低分數區間，如仍有疑慮，也可與醫療專業人員討論功能影響。'}</p>
+      </div>`;
+    }
+    el('results').innerHTML = `<div class="result-heading"><h2>計分結果</h2><span class="sub">${mode === 'short' ? '6 題快速篩檢' : '18 題完整檢核＋6 題篩檢'}｜${today}</span></div>
+      ${metrics}${interpretation}${shortDetails(s)}
+      <div class="footnote"><strong>重要提醒：</strong>此為篩檢及症狀頻率量表，不是臨床診斷。專業評估需考量童年起病情況、跨情境表現、功能損害及其他可能原因。6 題計分和 18 題各部分加總為兩種不同計分方式，不能直接拿同一門檻相互套用。</div>
+      <div class="toolbar"><button type="button" class="secondary" id="print-btn">列印結果／另存 PDF</button><span class="tiny-note print-hide">列印時也會包含目前頁面顯示的題目與回答。</span></div>`;
+    el('results').hidden = false;
+  }
+  el('questions').addEventListener('click', event => {
+    const b = event.target.closest('[data-choice]');
+    if (!b) return;
+    setAnswer(Number(b.dataset.question), Number(b.dataset.choice));
+  });
+  el('questions').addEventListener('input', event => {
+    const input = event.target.closest('input[data-input]');
+    if (!input) return;
+    const index = Number(input.dataset.input);
+    const raw = input.value.trim();
+    if (raw === '') setAnswer(index, null);
+    else if (/^[0-4]$/.test(raw)) setAnswer(index, Number(raw));
+    else {
+      answers[index] = null;
+      input.setAttribute('aria-invalid', 'true');
+      input.closest('.entry').querySelector('.entry-hint').textContent = '僅限 0–4';
+      input.closest('.q-card').querySelectorAll('[data-choice]').forEach(b => b.setAttribute('aria-pressed','false'));
+      updateProgress();
+      syncResults();
+    }
+  });
+  el('questions').addEventListener('keydown', event => {
+    // Press Enter in a numerical field to move to the next question's numerical field.
+    const input = event.target.closest('input[data-input]');
+    if (!input || event.key !== 'Enter') return;
+    event.preventDefault();
+    const inputs = [...el('questions').querySelectorAll('input[data-input]')];
+    const position = inputs.indexOf(input);
+    if (inputs[position + 1]) { inputs[position + 1].focus(); inputs[position + 1].select(); }
+    else if (isCurrentFormComplete()) el('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+    mode = tab.dataset.mode;
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b === tab)));
+    el('question-panel').setAttribute('aria-labelledby', tab.id);
+    el('form-message').textContent = '';
+    renderQuestions();
+    // Switching tabs shows existing results immediately if that tab is already complete.
+    syncResults();
+  }));
+  el('clear-btn').addEventListener('click', () => {
+    if (!answers.some(n => n !== null)) return;
+    if (!confirm('確定要清除 6 題與 18 題共用的全部答案嗎？')) return;
+    answers.fill(null);
+    el('results').hidden = true;
+    el('form-message').textContent = '';
+    renderQuestions();
+  });
+  el('results').addEventListener('click', event => {
+    if (event.target.closest('#print-btn')) window.print();
+  });
+  renderQuestions();
+})();
+</script>
+</body>
+</html>

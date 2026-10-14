@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>SNAP-IV 評量表｜互動填寫版</title>
+  <style>
+    :root { --ink:#182a42; --muted:#60718a; --edge:#dce5f0; --paper:#fff; --canvas:#f4f7fb; --blue:#245fd3; --pale:#ebf2ff; --success:#18734f; --radius:17px; }
+    * { box-sizing:border-box; }
+    html {scroll-behavior:smooth;}
+    body { margin:0; background:var(--canvas); color:var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif; font-size:16px; line-height:1.65; }
+    button,input,select {font:inherit;}
+    button {cursor:pointer;}
+    .layout {width:min(1100px,calc(100% - 36px));margin:30px auto 112px;}
+    .masthead {border-radius:22px; padding:32px 40px; color:white; background:linear-gradient(125deg,#163c87,#225bd0 62%,#4382df); box-shadow:0 14px 40px #1d4b9c26; position:relative; overflow:hidden;}
+    .masthead::after {content:"";position:absolute;width:350px;height:350px;right:-100px;top:-180px;border:65px solid #ffffff11;border-radius:50%;pointer-events:none;}
+    .eyebrow {font-size:13px;letter-spacing:.15em;font-weight:700;opacity:.87;margin-bottom:7px;}
+    h1 {font-size:clamp(29px,4vw,41px);line-height:1.25;letter-spacing:.035em;margin:0;}
+    .subtitle {margin:12px 0 0; color:#e2edff;font-size:14px;max-width:710px;}
+    .author {margin:18px 0 0;font-size:12px;color:#d5e4fc;line-height:1.65;}
+    .panel {border:1px solid var(--edge);border-radius:var(--radius);background:var(--paper);box-shadow:0 4px 18px #112d5420;margin-top:21px;overflow:hidden;}
+    .panel-inner {padding:28px 31px;}
+    .panel-heading {display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:19px;}
+    h2 {font-size:21px;line-height:1.3;margin:0;letter-spacing:.01em;}
+    .step {color:var(--blue);background:var(--pale);font-size:12px;letter-spacing:.03em;padding:5px 11px;border-radius:999px;font-weight:800;white-space:nowrap;}
+    .fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;}
+    .field label {display:block;font-weight:700;font-size:14px;margin-bottom:7px;}
+    .field input,.field select {width:100%;border:1px solid #cbd7e7;border-radius:10px;background:#fff;padding:11px 13px;min-height:48px;color:var(--ink);outline-offset:3px;}
+    .field input:focus,.field select:focus {outline:2px solid #87afff;border-color:#4781eb;}
+    .field .hint {display:block;color:var(--muted);font-size:12px;margin-top:5px;}
+    .hidden {display:none !important;}
+    .instruction {padding:18px 21px;background:#f0f5ff;border:1px solid #dce8ff;border-radius:12px;margin-top:22px;font-size:15px;}
+    .instruction strong {font-weight:800;}
+    .legend {display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;}
+    .legend span {background:#fff;border:1px solid #d2dff3;border-radius:9px;padding:6px 10px;font-size:13px;font-weight:650;}
+    .progress-row {display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:12px;}
+    .progress-num {font-weight:800;color:var(--blue);font-size:17px;white-space:nowrap;}
+    .track {height:9px;background:#e3eaf5;border-radius:99px;overflow:hidden;}
+    .fill {height:100%;width:0%;background:linear-gradient(90deg,#3271e4,#33ab96);transition:width .18s ease;}
+    .tabs {margin-top:17px;display:flex;gap:9px;flex-wrap:wrap;}
+    .tabs a {color:#2357bd;background:#f0f5fe;font-size:13px;text-decoration:none;padding:5px 11px;border-radius:8px;}
+    .tabs a:focus-visible,.tabs a:hover {outline:2px solid #93b5fa;}
+    .section-heading {padding:24px 30px 13px;display:flex;align-items:baseline;flex-wrap:wrap;gap:11px;scroll-margin-top:15px;}
+    .section-heading h2 {font-size:20px;}
+    .section-heading small {color:var(--muted);font-size:13px;}
+    .question {padding:17px 29px 18px;border-top:1px solid #e7edf6;display:grid;grid-template-columns:minmax(0,1fr) minmax(370px,44%);gap:20px;align-items:center;}
+    .question:nth-of-type(even) {background:#f8fafe;}
+    .question-title {display:flex;gap:11px;align-items:flex-start;margin:0;font-size:15px;line-height:1.75;}
+    .number {flex:none;display:inline-flex;width:30px;height:30px;border-radius:9px;align-items:center;justify-content:center;color:#315eb1;background:#eaf1fe;font-weight:800;font-size:13px;margin-top:1px;}
+    .choices {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+    .choice {border-radius:10px;border:1px solid #d5deeb;display:flex;align-items:center;justify-content:center;position:relative;min-height:53px;padding:6px 3px;background:white;color:#58687f;user-select:none;transition:background .13s,border-color .13s,box-shadow .13s;}
+    .choice input {position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+    .choice-text {display:flex;align-items:center;flex-direction:column;line-height:1.3;gap:3px;font-size:11px;pointer-events:none;text-align:center;}
+    .choice-text b {font-size:16px;color:#40566e;}
+    .choice:has(input:checked),.choice.is-selected {background:#eaf2ff;border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);color:#184a9d;}
+    .choice:has(input:checked) b,.choice.is-selected b {color:#1748a5;}
+    .choice:focus-within {outline:3px solid #9ebfff;outline-offset:2px;}
+    .choice:hover {border-color:#6b9df0;}
+    .print-value {display:none;}
+    .summary-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;}
+    .metric {background:#f7faff;border:1px solid #dce7f7;border-radius:13px;padding:18px;min-height:119px;}
+    .metric-name {font-weight:800;color:#32465e;font-size:14px;}
+    .metric-score {font-size:27px;line-height:1.35;font-weight:850;color:#1d56c7;margin-top:8px;font-variant-numeric:tabular-nums;}
+    .metric-extra {color:var(--muted);font-size:12px;margin-top:5px;}
+    .caution {font-size:13px;color:#64738b;margin:18px 0 0;}
+    .toolbar {position:fixed;z-index:5;bottom:0;left:0;right:0;background:#fffffff0;backdrop-filter:blur(15px);border-top:1px solid #dbe4ee;padding:14px max(18px,calc((100vw - 1100px)/2));box-shadow:0 -9px 22px #20395c16;}
+    .toolbar-content {display:flex;align-items:center;justify-content:space-between;gap:17px;}
+    .toolbar-note {font-size:12px;color:var(--muted);line-height:1.5;max-width:260px;}
+    .toolbar-actions {display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;}
+    .btn {border:1px solid #cbd8e8;background:#fff;color:#234368;font-weight:750;border-radius:10px;padding:10px 15px;min-height:45px;font-size:14px;white-space:nowrap;}
+    .btn:hover {background:#f0f6ff;}
+    .btn:focus-visible {outline:3px solid #a4c5ff;outline-offset:2px;}
+    .btn.primary {background:var(--blue);border-color:var(--blue);color:#fff;}
+    .btn.primary:hover {background:#174eaf;}
+    .btn.danger {color:#a33d36;}
+    .status {font-size:12px;color:#276c55;margin-top:9px;min-height:18px;text-align:right;}
+    @media(max-width:850px) {.question {grid-template-columns:1fr;gap:11px;}.choice {min-height:48px;}.choices {max-width:100%;}.summary-grid {grid-template-columns:1fr 1fr 1fr;}}
+    @media(max-width:630px) {.layout {width:calc(100% - 22px);margin:11px auto 155px;}.masthead {padding:24px 21px;border-radius:17px;}.panel-inner {padding:20px 17px;}.fields {grid-template-columns:1fr;}.question {padding:16px 17px;}.section-heading {padding:22px 18px 12px;}.question-title {font-size:14px;gap:9px;}.summary-grid {grid-template-columns:1fr;gap:9px;}.metric {min-height:0;padding:12px 15px;}.metric-score {font-size:22px;}.toolbar {padding:9px 11px 12px;}.toolbar-content {flex-direction:column;align-items:stretch;gap:7px;}.toolbar-note {max-width:none;text-align:center;}.toolbar-actions {justify-content:space-between;}.btn {padding:8px 10px;font-size:12px;flex:1 1 auto;}.status {text-align:center;margin-top:4px;}.legend {gap:7px;}.legend span {font-size:12px;}}
+    @media(max-width:365px) {.choice-text {font-size:10px;}.choice-text b {font-size:15px;}.choices {gap:5px;}.btn {font-size:11px;padding:7px 5px;}}
+    @media print {
+      @page {size:A4;margin:12mm 13mm;}
+      body {background:#fff;color:#171717;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;font-size:10pt;line-height:1.4;}
+      .layout {width:100%;margin:0;}
+      .masthead {padding:0 0 9px;color:#111;background:#fff;box-shadow:none;border-radius:0;border-bottom:2px solid #777;}
+      .masthead::after {display:none;}
+      .eyebrow {display:none;}
+      h1 {font-size:21pt;color:#111;}
+      .subtitle {display:none;}
+      .author {color:#666;font-size:8pt;margin-top:3px;}
+      .panel {box-shadow:none;border:0;border-radius:0;margin-top:8px;overflow:visible;}
+      .panel-inner {padding:7px 0;}
+      .panel-heading {margin-bottom:6px;}
+      .panel-heading h2 {font-size:12pt;}
+      .step,.instruction,.tabs,.track,.toolbar,.no-print,.caution {display:none !important;}
+      .fields {grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 13px;}
+      .field label {font-size:9pt;margin-bottom:1px;}
+      .field input,.field select {padding:2px 4px;min-height:0;height:24px;border:1px solid #b6b6b6;border-radius:0;font-size:9pt;appearance:none;-webkit-appearance:none;color:#111;background:transparent;}
+      .field .hint {display:none;}
+      .progress-row {margin:0;}
+      .progress-num {font-size:10pt;color:#111;}
+      .section-heading {padding:9px 0 5px;}
+      .section-heading h2 {font-size:11pt;}
+      .section-heading small {font-size:8.5pt;}
+      .question {display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 4px;border-top:1px solid #c8c8c8;break-inside:avoid;page-break-inside:avoid;}
+      .question:nth-of-type(even) {background:#f7f7f7;}
+      .question-title {font-size:9.2pt;line-height:1.45;flex:1;}
+      .number {width:22px;height:22px;border-radius:3px;font-size:8.5pt;color:#111;background:#e9e9e9;}
+      .choices {display:none;}
+      .print-value {display:block;flex:none;width:85px;text-align:right;font-size:9pt;font-weight:700;}
+      .summary-grid {grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+      .metric {min-height:0;padding:7px;border-radius:0;border-color:#bbb;background:#fff;}
+      .metric-name {font-size:9pt;}
+      .metric-score {font-size:16pt;color:#111;margin-top:1px;}
+      .metric-extra {font-size:8pt;margin:0;}
+    }
+  </style>
+</head>
+<body>
+<main class="layout">
+  <header class="masthead">
+    <div class="eyebrow">線上互動填寫・離線可用</div>
+    <h1>SNAP-IV 評量表</h1>
+    <p class="subtitle">依照提供的 26 題量表製作。逐題點選 0～3 分，可即時查看完成度與各向度分數，並列印或下載作答結果。</p>
+    <p class="author">James M. Swanson, PhD<br>Translated by Susan Shur-Fen Gau（高淑芬）, M.D., PhD</p>
+  </header>
+
+  <section class="panel" aria-labelledby="meta-title">
+    <div class="panel-inner">
+      <div class="panel-heading"><h2 id="meta-title">填表資料</h2><span class="step">基本資訊</span></div>
+      <div class="fields">
+        <div class="field"><label for="respondent">填表人姓名</label><input id="respondent" type="text" autocomplete="name" maxlength="100" placeholder="請輸入填表人姓名"></div>
+        <div class="field"><label for="fillDate">填表日期</label><input id="fillDate" type="date"></div>
+        <div class="field"><label for="relationship">與受試者的關係</label><select id="relationship"><option value="">請選擇關係</option><option value="父／母親">父／母親</option><option value="老師">老師</option><option value="其他監護人">其他監護人</option></select></div>
+        <div class="field hidden" id="otherRelationBox"><label for="otherRelation">其他監護人，請說明</label><input id="otherRelation" type="text" maxlength="120" placeholder="請說明與受試者的關係"></div>
+        <div class="field"><label for="subject">受試者姓名 <span style="font-weight:400;color:#60718a">（選填，方便整理報告）</span></label><input id="subject" type="text" maxlength="100" placeholder="可不填"></div>
+      </div>
+      <div class="instruction">
+        <strong>填寫說明：</strong>請選擇最能代表孩子在<strong>過去一個星期</strong>內狀況的選項。每題只能選一個答案。
+        <div class="legend" aria-label="分數說明"><span>0　完全沒有</span><span>1　有一點點</span><span>2　還算不少</span><span>3　非常的多</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel no-print" aria-labelledby="progress-title">
+    <div class="panel-inner">
+      <div class="progress-row"><h2 id="progress-title">填寫進度</h2><div class="progress-num" id="progressLabel" aria-live="polite">0 / 26 題</div></div>
+      <div class="track" role="progressbar" aria-label="填寫進度" aria-valuemin="0" aria-valuemax="26" aria-valuenow="0" id="progressBar"><div class="fill" id="progressFill"></div></div>
+      <nav class="tabs" aria-label="快速跳轉量表向度"><a href="#domain-1">1～9 題　注意力不足</a><a href="#domain-2">10～18 題　過動／衝動</a><a href="#domain-3">19～26 題　對立／反抗</a><a href="#results">分數統計</a></nav>
+    </div>
+  </section>
+
+  <div id="questionnaire"></div>
+
+  <section class="panel" id="results" aria-labelledby="results-title">
+    <div class="panel-inner">
+      <div class="panel-heading"><h2 id="results-title">分數統計</h2><span class="step">依已填答項目更新</span></div>
+      <div class="summary-grid" id="scoreCards" aria-live="polite"></div>
+      <p class="caution">計分方式：每題 0～3 分，各向度在全部題目完成後顯示總分及平均分數；未完成時僅顯示暫計分數。這份網頁僅供填表與分數整理，無法單憑量表分數作出醫療診斷，應由專業人員結合其他資料評估。</p>
+    </div>
+  </section>
+</main>
+
+<footer class="toolbar no-print">
+  <div class="toolbar-content">
+    <span class="toolbar-note">資料僅在此瀏覽器頁面處理，不會上傳。請下載結果保存，關閉或重新整理可能遺失填寫內容。</span>
+    <div class="toolbar-actions">
+      <button class="btn danger" id="resetBtn" type="button">清空重填</button>
+      <button class="btn" id="csvBtn" type="button">下載 CSV</button>
+      <button class="btn" id="printBtn" type="button">列印／PDF</button>
+      <button class="btn primary" id="htmlBtn" type="button">下載結果 HTML</button>
+    </div>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+</footer>
+<script>
+(function () {
+  'use strict';
+  const options = ['完全沒有', '有一點點', '還算不少', '非常的多'];
+  const domains = [
+    { name:'注意力不足', start:1, end:9, id:'domain-1' },
+    { name:'過動／衝動', start:10, end:18, id:'domain-2' },
+    { name:'對立／反抗', start:19, end:26, id:'domain-3' }
+  ];
+  const questions = [
+    '無法專注於細節的部分，或在做學校作業或其他活動時，出現粗心的錯誤',
+    '很難持續專注於工作或遊戲活動',
+    '看起來好像沒有在聽別人對他（她）說話的內容',
+    '沒有辦法遵循指示，也無法完成學校作業或家事（並不是由於對立性行為或無法了解指示的內容）',
+    '組織規劃工作及活動有困難',
+    '逃避，或表達不願意，或有困難於需要持續性動腦的工作（例如學校作業或家庭作業）',
+    '會弄丟工作上或活動所必須的東西（例如學校作業、鉛筆、書、工具或玩具）',
+    '很容易受外在刺激影響而分心',
+    '在日常生活中忘東忘西的',
+    '在座位上玩弄手腳或不好好坐著',
+    '在教室或其他必須持續坐著的場合，會任意離開座位',
+    '在不適當的場合，亂跑或爬高爬低',
+    '很難安靜地玩或參與休閒活動',
+    '總是一直在動或是像被馬達所驅動',
+    '話很多',
+    '在問題還沒問完前就急著回答',
+    '在遊戲中或團體活動中，無法排隊或等待輪流',
+    '打斷或干擾別人（例如：插嘴或打斷別人的遊戲）',
+    '發脾氣',
+    '與大人爭論',
+    '主動地反抗或拒絕大人的要求與規定',
+    '故意地做一些事去干擾別人',
+    '因自己犯的錯或不適當的行為而怪罪別人',
+    '易怒的或很容易被別人激怒',
+    '生氣的及怨恨的',
+    '惡意的或有報復心的'
+  ];
+  const $ = (id) => document.getElementById(id);
+  const safe = (v) => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const now = new Date();
+  $('fillDate').value = [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
+
+  function selected(n) {
+    const el = document.querySelector('input[name="q' + n + '"]:checked');
+    return el ? Number(el.value) : null;
+  }
+  function makeQuestion(index) {
+    const number = index+1;
+    const card = document.createElement('div');
+    card.className='question';
+    card.id='question-' + number;
+    card.innerHTML = '<p class="question-title" id="qtext-'+number+'"><span class="number">'+number+'</span><span>'+safe(questions[index])+'</span></p>' +
+      '<div class="choices" role="group" aria-labelledby="qtext-'+number+'">' + options.map((v,i) =>
+      '<label class="choice"><input aria-label="第'+number+'題：'+i+'分，'+safe(v)+'" type="radio" name="q'+number+'" value="'+i+'"><span class="choice-text"><b>'+i+'</b><span>'+safe(v)+'</span></span></label>').join('') + '</div><span class="print-value" id="print-'+number+'">未作答</span>';
+    return card;
+  }
+  const wrap=$('questionnaire');
+  domains.forEach((d) => {
+    const section=document.createElement('section');
+    section.className='panel';
+    section.setAttribute('aria-labelledby',d.id);
+    const heading=document.createElement('div');
+    heading.className='section-heading';
+    heading.innerHTML='<h2 id="'+d.id+'">'+safe(d.name)+'</h2><small>第 '+d.start+'～'+d.end+' 題</small>';
+    section.appendChild(heading);
+    for(let n=d.start;n<=d.end;n++) section.appendChild(makeQuestion(n-1));
+    wrap.appendChild(section);
+  });
+
+  function data() {
+    const answers=questions.map((_,i)=>selected(i+1));
+    const relation=$('relationship').value;
+    return {respondent:$('respondent').value.trim(),subject:$('subject').value.trim(),date:$('fillDate').value,relationship:relation === '其他監護人' ? (relation + ($('otherRelation').value.trim() ? '（'+$('otherRelation').value.trim()+'）' : '')) : relation,answers};
+  }
+  function calculate(values) {
+    return domains.map(d=>{
+      const group=values.slice(d.start-1,d.end);
+      const answered=group.filter(v=>v!==null);
+      const sum=answered.reduce((a,b)=>a+b,0);
+      return {name:d.name,start:d.start,end:d.end,answered:answered.length,count:group.length,sum,complete:answered.length===group.length,avg:answered.length===group.length?(sum/group.length).toFixed(2):null};
+    });
+  }
+  function update() {
+    const values=data().answers;
+    const count=values.filter(v=>v!==null).length;
+    $('progressLabel').textContent=count+' / 26 題'+(count===26?' ✓ 已完成':'');
+    $('progressBar').setAttribute('aria-valuenow',String(count));
+    $('progressFill').style.width=(count/26*100)+'%';
+    $('scoreCards').innerHTML=calculate(values).map(d=>
+      '<div class="metric"><div class="metric-name">'+safe(d.name)+'</div><div class="metric-score">'+(d.complete ? d.sum+' / '+(d.count*3) : '—')+'</div><div class="metric-extra">'+(d.complete ? '平均 '+d.avg+' 分／題' : '已填 '+d.answered+'／'+d.count+' 題，暫計 '+d.sum+' 分')+'</div></div>').join('');
+    values.forEach((v,i)=>{
+      $('print-'+(i+1)).textContent=v===null?'未作答':v+' 分｜'+options[v];
+    });
+    document.querySelectorAll('.choice').forEach(label=>label.classList.toggle('is-selected',label.querySelector('input').checked));
+  }
+  function status(message) {
+    $('status').textContent=message;
+  }
+  function filename(name, ext){
+    const date = $('fillDate').value || '未填日期';
+    const who = ($('subject').value.trim() || $('respondent').value.trim() || '未命名').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').slice(0,40);
+    return 'SNAP-IV_'+who+'_'+date+'.'+ext;
+  }
+  function download(content,type,name){
+    const blob = new Blob([content],{type});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=name; document.body.appendChild(a); a.click();a.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function csvCell(x){return '"'+String(x==null?'':x).replace(/"/g,'""')+'"';}
+  function downloadCSV(){
+    const d=data(), stats=calculate(d.answers), count=d.answers.filter(v=>v!==null).length;
+    const lines=[['項目','內容'],['表單','SNAP-IV 評量表（26 題）'],['填表人姓名',d.respondent],['受試者姓名',d.subject],['填表日期',d.date],['與受試者的關係',d.relationship],['填寫完成度',count+'/26'],[],['題號','向度','題目','分數','選項']];
+    d.answers.forEach((v,i)=>{
+      const domain=domains.find(g=>i+1>=g.start&&i+1<=g.end).name;
+      lines.push([i+1,domain,questions[i],v===null?'':v,v===null?'未作答':options[v]]);
+    });
+    lines.push([],['向度','已填題數','題數','總分（未填完時為暫計）','平均（全部完成時）']);
+    stats.forEach(s=>lines.push([s.name,s.answered,s.count,s.sum,s.avg||'未完成']));
+    download('\ufeff'+lines.map(line=>line.map(csvCell).join(',')).join('\r\n'),'text/csv;charset=utf-8',filename('result','csv'));
+    status('CSV 結果已產生。');
+  }
+  function downloadHTML(){
+    const d=data(),stats=calculate(d.answers),count=d.answers.filter(v=>v!==null).length;
+    const dateStr=d.date||'未填';
+    const rows=questions.map((q,i)=>{
+      const value=d.answers[i], v=value===null?'未作答':value+' 分｜'+options[value];
+      return '<tr><td class="n">'+(i+1)+'</td><td>'+safe(q)+'</td><td class="answer">'+safe(v)+'</td></tr>';
+    }).join('');
+    const report=`<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SNAP-IV 填寫結果</title><style>
+@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Microsoft JhengHei",sans-serif;color:#172337;margin:0;background:#f4f6f9;line-height:1.55}.sheet{background:#fff;max-width:900px;margin:24px auto;padding:36px 42px;box-shadow:0 8px 35px #1b365318;border-radius:14px}h1{font-size:29px;margin:0 0 4px}h2{font-size:18px;margin:23px 0 10px}.sub{color:#687487;font-size:12px}.details{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin:20px 0;border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:14px 0}.details div{font-size:14px}.details strong{color:#53647a}.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.score{border:1px solid #d4ddea;border-radius:10px;padding:13px;background:#f7faff}.score b{font-size:15px}.score em{display:block;font-style:normal;font-size:24px;color:#1b55c6;font-weight:800}.score small{color:#647287}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 9px;border:1px solid #d8e0ea;vertical-align:top;text-align:left}th{background:#eaf1fd}.n{width:46px;text-align:center}.answer{width:135px;font-weight:750;white-space:nowrap}.notes{font-size:12px;color:#667587;margin-top:17px}.print{display:inline-block;border:0;background:#215ac9;color:white;border-radius:7px;padding:9px 15px;font-size:14px;cursor:pointer;margin:0 0 17px}@media(max-width:640px){.sheet{margin:0;padding:22px 14px;border-radius:0}.details,.scores{grid-template-columns:1fr}.answer{white-space:normal;width:90px;font-size:11px}th,td{padding:6px 5px}h1{font-size:25px}}@media print{body{background:white}.sheet{box-shadow:none;max-width:none;margin:0;padding:0}.print{display:none}th,td{font-size:9pt;padding:5px 6px}tr,.score{break-inside:avoid}.scores{grid-template-columns:repeat(3,1fr)}.details{grid-template-columns:1fr 1fr}h1{font-size:22pt}}
+</style></head><body><article class="sheet">
+<button type="button" class="print" onclick="window.print()">列印／另存 PDF</button>
+<h1>SNAP-IV 評量表｜填寫結果</h1><div class="sub">James M. Swanson, PhD　／　Translated by Susan Shur-Fen Gau（高淑芬）, M.D., PhD</div>
+<div class="details"><div><strong>填表人：</strong>${safe(d.respondent||'未填')}</div><div><strong>受試者：</strong>${safe(d.subject||'未填')}</div><div><strong>填表日期：</strong>${safe(dateStr)}</div><div><strong>與受試者的關係：</strong>${safe(d.relationship||'未填')}</div><div><strong>填寫進度：</strong>${count} / 26 題</div></div>
+<h2>分數統計</h2><div class="scores">${stats.map(s=>`<div class="score"><b>${safe(s.name)}</b><em>${s.complete?s.sum+' / '+s.count*3:'—'}</em><small>${s.complete?'平均 '+s.avg+' 分／題':'已填 '+s.answered+'/'+s.count+' 題，暫計 '+s.sum+' 分'}</small></div>`).join('')}</div>
+<h2>逐題作答紀錄</h2><table><thead><tr><th>題號</th><th>題目</th><th>作答</th></tr></thead><tbody>${rows}</tbody></table>
+<p class="notes">作答說明：0＝完全沒有；1＝有一點點；2＝還算不少；3＝非常的多。各向度平均分數只在全部題目填妥後計算。本結果僅供記錄與專業評估參考，不構成診斷。</p>
+</article></body></html>`;
+    download(report,'text/html;charset=utf-8',filename('result','html'));
+    status('HTML 結果報告已產生，可獨立開啟及列印。');
+  }
+  $('questionnaire').addEventListener('change',update);
+  ['respondent','subject','fillDate','otherRelation'].forEach(id=>$(id).addEventListener('input',()=>status('')));
+  $('relationship').addEventListener('change',()=>{
+    const other=$('relationship').value==='其他監護人';
+    $('otherRelationBox').classList.toggle('hidden',!other);
+    if(!other) $('otherRelation').value='';
+  });
+  $('htmlBtn').addEventListener('click',downloadHTML);
+  $('csvBtn').addEventListener('click',downloadCSV);
+  $('printBtn').addEventListener('click',()=>{update();window.print();});
+  $('resetBtn').addEventListener('click',()=>{
+    if(!window.confirm('確定清空所有填表資料及 26 題答案？這個動作無法復原。'))return;
+    document.querySelectorAll('input[type="radio"]').forEach(input=>input.checked=false);
+    ['respondent','subject','otherRelation'].forEach(id=>$(id).value='');
+    $('relationship').value=''; $('otherRelationBox').classList.add('hidden');
+    const today=new Date();$('fillDate').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+    update();status('已清空，可以重新填寫。');window.scrollTo({top:0,behavior:'smooth'});
+  });
+  update();
+})();
+</script>
+</body>
+</html>
